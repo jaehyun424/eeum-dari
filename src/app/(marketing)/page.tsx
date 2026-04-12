@@ -17,7 +17,6 @@ import {
   Stethoscope,
   Building2,
   ArrowRight,
-  Check,
 } from 'lucide-react';
 import { type ReactNode } from 'react';
 
@@ -139,134 +138,24 @@ const trustItems = [
 
 function HeroVisual() {
   return (
-    <div className="relative flex h-[440px] items-center justify-center overflow-visible">
-      {/* Phone mockup */}
-      <motion.div
-        initial={{ opacity: 0, y: 40 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.7, delay: 0.2 }}
-        className="relative z-10 w-[250px] rotate-2"
-        style={{ filter: 'drop-shadow(0 20px 40px rgba(0,0,0,0.16))' }}
+    <motion.div
+      initial={{ opacity: 0, y: 40 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.7, delay: 0.2 }}
+      className="relative overflow-hidden rounded-2xl bg-brand-50"
+    >
+      <video
+        autoPlay
+        loop
+        muted
+        playsInline
+        className="h-[440px] w-full object-cover"
+        poster=""
       >
-        {/* Bezel */}
-        <div className="rounded-[2.5rem] border-2 border-gray-300 bg-gray-100 p-[5px] shadow-2xl">
-          {/* Inner bezel */}
-          <div className="rounded-[2.25rem] bg-black p-2.5 pb-2">
-            {/* Dynamic Island */}
-            <div className="mx-auto mb-2 h-[16px] w-[72px] rounded-full bg-black ring-1 ring-gray-800" />
-
-            {/* Screen */}
-            <div className="overflow-hidden rounded-[1.5rem] bg-white">
-              {/* Status bar */}
-              <div className="flex items-center justify-between px-5 py-1 text-[10px] font-semibold text-gray-800">
-                <span>9:41</span>
-                <div className="flex items-center gap-1 text-[8px] text-gray-400">
-                  <span>●●●○</span>
-                  <span>▐█▌</span>
-                </div>
-              </div>
-
-              {/* App nav bar */}
-              <div className="bg-brand-600 px-4 pb-3 pt-2">
-                <p className="text-[9px] font-medium text-brand-200">
-                  이음다리
-                </p>
-                <h3 className="mt-0.5 text-[13px] font-bold text-white">
-                  간병 신청
-                </h3>
-              </div>
-
-              {/* Form */}
-              <div className="space-y-2.5 px-3.5 py-3">
-                {/* Hospital */}
-                <div>
-                  <p className="text-[8px] font-semibold uppercase tracking-wider text-gray-400">
-                    병원
-                  </p>
-                  <div className="mt-0.5 flex items-center gap-1.5 rounded-lg border border-gray-200 bg-gray-50 px-2 py-1.5">
-                    <Building2 className="h-3 w-3 text-brand-500" />
-                    <span className="text-[10px] font-medium text-gray-800">
-                      서울대학교병원
-                    </span>
-                  </div>
-                </div>
-
-                {/* Patient */}
-                <div>
-                  <p className="text-[8px] font-semibold uppercase tracking-wider text-gray-400">
-                    환자 정보
-                  </p>
-                  <div className="mt-0.5 grid grid-cols-2 gap-1">
-                    <div className="rounded-lg border border-gray-200 bg-gray-50 px-2 py-1.5">
-                      <span className="text-[8px] text-gray-400">나이</span>
-                      <p className="text-[10px] font-medium text-gray-800">
-                        72세
-                      </p>
-                    </div>
-                    <div className="rounded-lg border border-gray-200 bg-gray-50 px-2 py-1.5">
-                      <span className="text-[8px] text-gray-400">성별</span>
-                      <p className="text-[10px] font-medium text-gray-800">
-                        여성
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Care type */}
-                <div>
-                  <p className="text-[8px] font-semibold uppercase tracking-wider text-gray-400">
-                    간병 유형
-                  </p>
-                  <div className="mt-0.5 flex gap-1">
-                    <span className="rounded-full bg-brand-600 px-2 py-0.5 text-[9px] font-semibold text-white">
-                      24시간
-                    </span>
-                    <span className="rounded-full border border-gray-200 px-2 py-0.5 text-[9px] text-gray-400">
-                      12시간
-                    </span>
-                    <span className="rounded-full border border-gray-200 px-2 py-0.5 text-[9px] text-gray-400">
-                      야간
-                    </span>
-                  </div>
-                </div>
-
-                {/* CTA */}
-                <div className="rounded-xl bg-brand-600 py-2 text-center">
-                  <span className="text-[10px] font-bold text-white">
-                    간병인 매칭 시작
-                  </span>
-                </div>
-              </div>
-
-              {/* Home indicator */}
-              <div className="pb-2 pt-1">
-                <div className="mx-auto h-1 w-[72px] rounded-full bg-gray-200" />
-              </div>
-            </div>
-          </div>
-        </div>
-      </motion.div>
-
-      {/* Notification card — bottom-left, behind phone */}
-      <motion.div
-        initial={{ opacity: 0, scale: 0.9, y: 10 }}
-        animate={{ opacity: 1, scale: 1, y: 0 }}
-        transition={{ duration: 0.4, delay: 1.5 }}
-        className="absolute bottom-6 left-0 z-20 w-[256px] rounded-2xl border border-brand-200 bg-white p-4 shadow-xl"
-      >
-        <div className="flex items-center gap-3">
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-success/20">
-            <Check className="h-4 w-4 text-success" />
-          </div>
-          <div>
-            <p className="text-sm font-bold text-brand-700">매칭 완료!</p>
-            <p className="mt-0.5 text-xs text-brand-600">
-              김서연 간병사가 배정되었습니다
-            </p>
-          </div>
-        </div>
-      </motion.div>
-    </div>
+        <source src="/hero-video.mp4" type="video/mp4" />
+      </video>
+      <div className="absolute inset-0 bg-black/10" />
+    </motion.div>
   );
 }
 
@@ -327,7 +216,7 @@ export default function LandingPage() {
       <section className="bg-surface">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-20 sm:py-28">
           <FadeIn>
-            <p className="text-accent-500 font-semibold text-sm tracking-wide uppercase mb-3">
+            <p className="text-brand-500 font-semibold text-sm tracking-wide uppercase mb-3">
               간병의 현실
             </p>
             <h2 className="text-3xl sm:text-4xl font-bold text-foreground">
@@ -348,7 +237,7 @@ export default function LandingPage() {
                 variants={fadeUp}
                 transition={{ duration: 0.5 }}
               >
-                <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-accent-100 text-accent-600">
+                <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-100 text-brand-600">
                   <p.icon className="h-7 w-7" />
                 </div>
                 <h3 className="mt-5 text-xl sm:text-2xl font-bold text-foreground">
