@@ -1,26 +1,120 @@
+@import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css");
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
+/* ─── Tailwind v4 Theme ─── */
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  /* Brand Colors — Primary #1E56A0 (Deep Blue) */
+  --color-brand-50: #EFF5FF;
+  --color-brand-100: #DAE8FD;
+  --color-brand-200: #BEDBFC;
+  --color-brand-300: #93C2F9;
+  --color-brand-400: #6199F0;
+  --color-brand-500: #3B75E3;
+  --color-brand-600: #1E56A0;
+  --color-brand-700: #1A4A8A;
+  --color-brand-800: #1B3E72;
+  --color-brand-900: #1C345F;
+  --color-brand-950: #132140;
+
+  /* Accent Colors — Secondary #E8835A (Coral) */
+  --color-accent-50: #fef5f1;
+  --color-accent-100: #fee8de;
+  --color-accent-200: #facebc;
+  --color-accent-300: #f7ac8e;
+  --color-accent-400: #f18f65;
+  --color-accent-500: #E8835A;
+  --color-accent-600: #d16837;
+  --color-accent-700: #ae512a;
+  --color-accent-800: #8c4226;
+  --color-accent-900: #733923;
+  --color-accent-950: #3e1b10;
+
+  /* Warm Gray */
+  --color-warm-gray-50: #fafaf9;
+  --color-warm-gray-100: #f5f5f4;
+  --color-warm-gray-200: #e7e5e4;
+  --color-warm-gray-300: #d6d3d1;
+  --color-warm-gray-400: #a8a29e;
+  --color-warm-gray-500: #78716c;
+  --color-warm-gray-600: #57534e;
+  --color-warm-gray-700: #44403c;
+  --color-warm-gray-800: #292524;
+  --color-warm-gray-900: #1c1917;
+  --color-warm-gray-950: #0c0a09;
+
+  /* Semantic Colors */
+  --color-success: #16a34a;
+  --color-success-light: #22c55e;
+  --color-success-dark: #15803d;
+  --color-warning: #eab308;
+  --color-warning-light: #facc15;
+  --color-warning-dark: #ca8a04;
+  --color-danger: #ef4444;
+  --color-danger-light: #f87171;
+  --color-danger-dark: #dc2626;
+
+  /* Surface Colors (light/dark 전환용) */
+  --color-background: var(--bg);
+  --color-foreground: var(--fg);
+  --color-surface: var(--surface);
+  --color-surface-hover: var(--surface-hover);
+  --color-border: var(--border-color);
+  --color-muted: var(--muted);
+
+  /* Font */
+  --font-sans: "Pretendard Variable", Pretendard, -apple-system,
+    BlinkMacSystemFont, system-ui, Roboto, "Helvetica Neue", "Segoe UI",
+    "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic",
+    "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif;
+
+  /* Border Radius */
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+  --radius-2xl: 1.5rem;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* ─── Light Mode (default) ─── */
+:root {
+  --bg: #ffffff;
+  --fg: #1c1917;
+  --surface: #fafaf9;
+  --surface-hover: #f5f5f4;
+  --border-color: #e7e5e4;
+  --muted: #78716c;
 }
 
+/* ─── Dark Mode ─── */
+.dark {
+  --bg: #0c0a09;
+  --fg: #fafaf9;
+  --surface: #1c1917;
+  --surface-hover: #292524;
+  --border-color: #44403c;
+  --muted: #a8a29e;
+}
+
+/* ─── Base Styles ─── */
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-sans);
+}
+
+/* ─── 스크롤바 커스텀 ─── */
+@media (pointer: fine) {
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: var(--border-color);
+    border-radius: 3px;
+  }
 }
