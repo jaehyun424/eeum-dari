@@ -286,52 +286,55 @@ function RegisterContent() {
 
             {/* Caregiver extra fields */}
             {role === 'caregiver' && (
-              <div className="space-y-3 rounded-xl border border-border bg-surface p-5">
-                <p className="text-sm font-semibold text-foreground">
-                  간병인 추가 정보
-                </p>
+              <div className="space-y-3 rounded-xl border border-border bg-surface p-6">
+                <div>
+                  <p className="text-sm font-semibold text-foreground">
+                    간병인 추가 정보
+                  </p>
+                  <p className="mt-1 text-sm text-muted">
+                    해당하는 항목을 선택해주세요
+                  </p>
+                </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  {/* Experience */}
-                  <div className="space-y-1.5">
-                    <label
-                      htmlFor="experience"
-                      className="block text-sm font-medium text-foreground"
-                    >
-                      경력 (년)
-                    </label>
-                    <input
-                      id="experience"
-                      type="number"
-                      min="0"
-                      placeholder="경력 년수"
-                      value={experienceYears}
-                      onChange={(e) => setExperienceYears(e.target.value)}
-                      className="block w-full rounded-lg border border-border bg-background px-3.5 py-3 text-sm text-foreground placeholder:text-muted transition-colors focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
-                    />
-                  </div>
+                {/* Experience */}
+                <div className="space-y-1.5">
+                  <label
+                    htmlFor="experience"
+                    className="block text-sm font-medium text-foreground"
+                  >
+                    경력 (년)
+                  </label>
+                  <input
+                    id="experience"
+                    type="number"
+                    min="0"
+                    placeholder="경력 년수"
+                    value={experienceYears}
+                    onChange={(e) => setExperienceYears(e.target.value)}
+                    className="block w-full rounded-lg border border-border bg-background px-3.5 py-3 text-base text-foreground placeholder:text-muted transition-colors focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
+                  />
+                </div>
 
-                  {/* Certifications */}
-                  <div className="space-y-1.5">
-                    <p className="block text-sm font-medium text-foreground">
-                      자격증
-                    </p>
-                    <div className="grid grid-cols-2 gap-2">
-                      {certOptions.map((cert) => (
-                        <label
-                          key={cert}
-                          className="flex cursor-pointer items-center gap-2"
-                        >
-                          <input
-                            type="checkbox"
-                            checked={certifications.includes(cert)}
-                            onChange={() => toggleCert(cert)}
-                            className="h-4 w-4 rounded border-border accent-brand-600"
-                          />
-                          <span className="text-sm text-foreground">{cert}</span>
-                        </label>
-                      ))}
-                    </div>
+                {/* Certifications */}
+                <div className="space-y-1.5">
+                  <p className="block text-sm font-medium text-foreground">
+                    자격증
+                  </p>
+                  <div className="grid grid-cols-2 gap-3">
+                    {certOptions.map((cert) => (
+                      <label
+                        key={cert}
+                        className="flex cursor-pointer items-center gap-2 p-3 rounded-lg border border-border hover:bg-surface-hover transition-colors"
+                      >
+                        <input
+                          type="checkbox"
+                          checked={certifications.includes(cert)}
+                          onChange={() => toggleCert(cert)}
+                          className="h-4 w-4 shrink-0 rounded border-border accent-brand-600"
+                        />
+                        <span className="text-base text-foreground">{cert}</span>
+                      </label>
+                    ))}
                   </div>
                 </div>
               </div>
