@@ -10,7 +10,13 @@ export function Header() {
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-background/80 backdrop-blur-sm">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-        <Link href="/" className="text-xl font-bold text-brand-600">
+        <Link href="/" className="flex items-center gap-2 text-xl font-bold text-brand-600">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="24" height="24">
+            <circle cx="8" cy="16" r="5" fill="currentColor"/>
+            <circle cx="24" cy="16" r="5" fill="currentColor"/>
+            <path d="M13 16 C16 8, 16 8, 19 16" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" fill="none"/>
+            <path d="M13 16 C16 24, 16 24, 19 16" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" fill="none"/>
+          </svg>
           이음다리
         </Link>
 

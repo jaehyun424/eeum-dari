@@ -213,46 +213,48 @@ function RegisterContent() {
 
           <form
             onSubmit={handleSubmit(onSubmit)}
-            className="mt-8 space-y-4"
+            className="mt-8 space-y-3"
           >
             {/* Hidden role */}
             <input type="hidden" value={role ?? ''} {...register('role')} />
 
-            <Input
-              id="name"
-              label="이름"
-              placeholder="홍길동"
-              className="py-3"
-              error={errors.name?.message}
-              {...register('name')}
-            />
-            <Input
-              id="email"
-              type="email"
-              label="이메일"
-              placeholder="example@email.com"
-              className="py-3"
-              error={errors.email?.message}
-              {...register('email')}
-            />
-            <Input
-              id="phone"
-              type="tel"
-              label="연락처"
-              placeholder="010-0000-0000"
-              className="py-3"
-              error={errors.phone?.message}
-              {...register('phone')}
-            />
-            <Input
-              id="password"
-              type="password"
-              label="비밀번호"
-              placeholder="6자 이상 입력해주세요"
-              className="py-3"
-              error={errors.password?.message}
-              {...register('password')}
-            />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <Input
+                id="name"
+                label="이름"
+                placeholder="홍길동"
+                className="py-3"
+                error={errors.name?.message}
+                {...register('name')}
+              />
+              <Input
+                id="email"
+                type="email"
+                label="이메일"
+                placeholder="example@email.com"
+                className="py-3"
+                error={errors.email?.message}
+                {...register('email')}
+              />
+              <Input
+                id="phone"
+                type="tel"
+                label="연락처"
+                placeholder="010-0000-0000"
+                className="py-3"
+                error={errors.phone?.message}
+                {...register('phone')}
+              />
+              <Input
+                id="password"
+                type="password"
+                label="비밀번호"
+                placeholder="6자 이상 입력해주세요"
+                className="py-3"
+                error={errors.password?.message}
+                {...register('password')}
+              />
+            </div>
 
             {/* Password confirm — separate from schema */}
             <div className="space-y-1.5">
@@ -284,50 +286,52 @@ function RegisterContent() {
 
             {/* Caregiver extra fields */}
             {role === 'caregiver' && (
-              <div className="space-y-4 rounded-xl border border-border bg-surface p-5">
+              <div className="space-y-3 rounded-xl border border-border bg-surface p-5">
                 <p className="text-sm font-semibold text-foreground">
                   간병인 추가 정보
                 </p>
 
-                {/* Experience */}
-                <div className="space-y-1.5">
-                  <label
-                    htmlFor="experience"
-                    className="block text-sm font-medium text-foreground"
-                  >
-                    경력 (년)
-                  </label>
-                  <input
-                    id="experience"
-                    type="number"
-                    min="0"
-                    placeholder="경력 년수"
-                    value={experienceYears}
-                    onChange={(e) => setExperienceYears(e.target.value)}
-                    className="block w-full rounded-lg border border-border bg-background px-3.5 py-3 text-sm text-foreground placeholder:text-muted transition-colors focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
-                  />
-                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {/* Experience */}
+                  <div className="space-y-1.5">
+                    <label
+                      htmlFor="experience"
+                      className="block text-sm font-medium text-foreground"
+                    >
+                      경력 (년)
+                    </label>
+                    <input
+                      id="experience"
+                      type="number"
+                      min="0"
+                      placeholder="경력 년수"
+                      value={experienceYears}
+                      onChange={(e) => setExperienceYears(e.target.value)}
+                      className="block w-full rounded-lg border border-border bg-background px-3.5 py-3 text-sm text-foreground placeholder:text-muted transition-colors focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
+                    />
+                  </div>
 
-                {/* Certifications */}
-                <div className="space-y-1.5">
-                  <p className="block text-sm font-medium text-foreground">
-                    자격증
-                  </p>
-                  <div className="space-y-3">
-                    {certOptions.map((cert) => (
-                      <label
-                        key={cert}
-                        className="flex cursor-pointer items-center gap-3"
-                      >
-                        <input
-                          type="checkbox"
-                          checked={certifications.includes(cert)}
-                          onChange={() => toggleCert(cert)}
-                          className="h-5 w-5 rounded border-border accent-brand-600"
-                        />
-                        <span className="text-sm text-foreground">{cert}</span>
-                      </label>
-                    ))}
+                  {/* Certifications */}
+                  <div className="space-y-1.5">
+                    <p className="block text-sm font-medium text-foreground">
+                      자격증
+                    </p>
+                    <div className="grid grid-cols-2 gap-2">
+                      {certOptions.map((cert) => (
+                        <label
+                          key={cert}
+                          className="flex cursor-pointer items-center gap-2"
+                        >
+                          <input
+                            type="checkbox"
+                            checked={certifications.includes(cert)}
+                            onChange={() => toggleCert(cert)}
+                            className="h-4 w-4 rounded border-border accent-brand-600"
+                          />
+                          <span className="text-sm text-foreground">{cert}</span>
+                        </label>
+                      ))}
+                    </div>
                   </div>
                 </div>
               </div>
