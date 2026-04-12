@@ -12,6 +12,10 @@ export const careRequestSchema = z.object({
   patientGender: z.enum(['male', 'female']),
   patientWeight: z.number().optional(),
   diagnosis: z.string().optional(),
+  mobilityLevel: z
+    .enum(['independent', 'assisted', 'wheelchair', 'bedridden'])
+    .optional(),
+  positionChangeFreq: z.enum(['none', '2h', '4h', 'medical']).optional(),
 
   // Step 3: 케어 항목
   careItems: z.array(z.string()).min(1, '최소 1개의 케어 항목을 선택해주세요'),
@@ -22,8 +26,18 @@ export const careRequestSchema = z.object({
   // Step 5: 선호사항
   preferredGender: z.enum(['male', 'female', 'any']),
   careStartDate: z.string().min(1, '시작일을 입력해주세요'),
-  careEndDate: z.string().min(1, '종료일을 입력해주세요'),
+  careEndDate: z.string().optional(),
+  endDateUndecided: z.boolean().optional(),
+  nightCareNeeded: z.boolean().optional(),
   additionalNotes: z.string().optional(),
+
+  // 보호자 정보
+  guardianName: z.string().optional(),
+  guardianPhone: z.string().optional(),
+  guardianRelation: z.enum(['spouse', 'child', 'sibling', 'other']).optional(),
+
+  // Step 6: 동의
+  sensitiveInfoConsent: z.boolean().optional(),
 });
 
 export type CareRequestFormData = z.infer<typeof careRequestSchema>;

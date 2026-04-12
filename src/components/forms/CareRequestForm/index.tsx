@@ -1,6 +1,8 @@
 'use client';
 
+import { motion, AnimatePresence } from 'framer-motion';
 import { useCareRequest } from '@/hooks/useCareRequest';
+import { Button } from '@/components/ui/Button';
 import { HospitalStep } from './HospitalStep';
 import { PatientStep } from './PatientStep';
 import { CareItemsStep } from './CareItemsStep';
@@ -32,21 +34,29 @@ export function CareRequestForm() {
 
   const StepComponent = steps[currentStep - 1].component;
 
+  const isSubmitDisabled =
+    isLastStep && formData.sensitiveInfoConsent !== true;
+
   return (
     <div className="mx-auto max-w-2xl">
       {/* Progress Bar */}
       <div className="mb-8">
         <div className="flex items-center justify-between mb-2">
+          {/* Desktop: show labels */}
           {steps.map((step, index) => (
             <span
               key={step.label}
-              className={`text-xs font-medium ${
+              className={`hidden sm:inline text-xs font-medium ${
                 index + 1 <= currentStep ? 'text-brand-600' : 'text-muted'
               }`}
             >
               {step.label}
             </span>
           ))}
+          {/* Mobile: show step number */}
+          <span className="sm:hidden text-sm font-semibold text-brand-600">
+            {currentStep} / {totalSteps}
+          </span>
         </div>
         <div className="h-2 rounded-full bg-warm-gray-200 dark:bg-warm-gray-800">
           <div
@@ -54,29 +64,44 @@ export function CareRequestForm() {
             style={{ width: `${progress}%` }}
           />
         </div>
-        <p className="mt-2 text-sm text-muted text-right">
+        <p className="mt-2 text-sm text-muted text-right hidden sm:block">
           {currentStep} / {totalSteps}
         </p>
       </div>
 
-      {/* Step Content */}
-      <StepComponent formData={formData} onUpdate={updateFormData} />
+      {/* Step Content with animation */}
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={currentStep}
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -12 }}
+          transition={{ duration: 0.3 }}
+        >
+          <StepComponent formData={formData} onUpdate={updateFormData} />
+        </motion.div>
+      </AnimatePresence>
 
       {/* Navigation */}
       <div className="mt-8 flex justify-between">
-        <button
+        <Button
+          variant="outline"
+          size="lg"
+          className="h-[48px] px-6"
           onClick={prevStep}
           disabled={isFirstStep}
-          className="rounded-lg border border-border px-6 py-2.5 text-sm font-medium text-foreground hover:bg-surface-hover disabled:opacity-50 disabled:pointer-events-none transition-colors"
         >
           이전
-        </button>
-        <button
+        </Button>
+        <Button
+          variant="primary"
+          size="lg"
+          className="h-[48px] px-8"
           onClick={nextStep}
-          className="rounded-lg bg-brand-600 px-6 py-2.5 text-sm font-medium text-white hover:bg-brand-700 transition-colors"
+          disabled={isSubmitDisabled}
         >
           {isLastStep ? '신청하기' : '다음'}
-        </button>
+        </Button>
       </div>
     </div>
   );
