@@ -1,8 +1,11 @@
 'use client';
 
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useCareRequest } from '@/hooks/useCareRequest';
 import { Button } from '@/components/ui/Button';
+import { Toast } from '@/components/ui/Toast';
 import { HospitalStep } from './HospitalStep';
 import { PatientStep } from './PatientStep';
 import { CareItemsStep } from './CareItemsStep';
@@ -19,7 +22,11 @@ const steps = [
   { label: '확인', component: ReviewStep },
 ];
 
+// 신청이 제출되면 Mock으로 이 ID를 사용해 매칭 페이지로 이동
+const SUBMITTED_REQUEST_ID = 'req-1';
+
 export function CareRequestForm() {
+  const router = useRouter();
   const {
     currentStep,
     totalSteps,
@@ -32,17 +39,51 @@ export function CareRequestForm() {
     progress,
   } = useCareRequest();
 
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [toastError, setToastError] = useState<string | null>(null);
+
   const StepComponent = steps[currentStep - 1].component;
 
   const isSubmitDisabled =
-    isLastStep && formData.sensitiveInfoConsent !== true;
+    (isLastStep && formData.sensitiveInfoConsent !== true) || isSubmitting;
+
+  const handleSubmit = async () => {
+    if (isSubmitting) return;
+    setIsSubmitting(true);
+    try {
+      const res = await fetch('/api/matching', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ careRequestId: SUBMITTED_REQUEST_ID }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data?.error ?? '매칭 요청에 실패했습니다.');
+      }
+      router.push(`/guardian/matching/${SUBMITTED_REQUEST_ID}`);
+    } catch (err) {
+      setToastError(
+        err instanceof Error
+          ? err.message
+          : '매칭 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.',
+      );
+      setIsSubmitting(false);
+    }
+  };
+
+  const handlePrimary = () => {
+    if (isLastStep) {
+      handleSubmit();
+    } else {
+      nextStep();
+    }
+  };
 
   return (
     <div className="mx-auto max-w-2xl">
       {/* Progress Bar */}
       <div className="mb-8">
         <div className="flex items-center justify-between mb-2">
-          {/* Desktop: show labels */}
           {steps.map((step, index) => (
             <span
               key={step.label}
@@ -53,7 +94,6 @@ export function CareRequestForm() {
               {step.label}
             </span>
           ))}
-          {/* Mobile: show step number */}
           <span className="sm:hidden text-sm font-semibold text-brand-600">
             {currentStep} / {totalSteps}
           </span>
@@ -89,7 +129,7 @@ export function CareRequestForm() {
           size="lg"
           className="h-[48px] px-6"
           onClick={prevStep}
-          disabled={isFirstStep}
+          disabled={isFirstStep || isSubmitting}
         >
           이전
         </Button>
@@ -97,12 +137,20 @@ export function CareRequestForm() {
           variant="primary"
           size="lg"
           className="h-[48px] px-8"
-          onClick={nextStep}
+          onClick={handlePrimary}
           disabled={isSubmitDisabled}
+          isLoading={isSubmitting}
         >
-          {isLastStep ? '신청하기' : '다음'}
+          {isLastStep ? (isSubmitting ? '처리 중...' : '신청하기') : '다음'}
         </Button>
       </div>
+
+      <Toast
+        type="error"
+        message={toastError ?? ''}
+        isVisible={toastError !== null}
+        onClose={() => setToastError(null)}
+      />
     </div>
   );
 }

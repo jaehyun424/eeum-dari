@@ -47,7 +47,9 @@ test.describe('이음다리 Phase 5 E2E', () => {
     const errors: string[] = [];
     await listenConsole(page, errors);
     await page.goto('/register?role=caregiver');
-    await expect(page.getByText(/간병인.*회원가입|회원가입.*간병/)).toBeVisible();
+    await expect(
+      page.getByRole('heading', { name: '간병인 회원가입' }),
+    ).toBeVisible();
     await expect(page.locator('input[type="email"]')).toBeVisible();
     await expect(page.locator('input[type="password"]')).toBeVisible();
     const checkboxes = page.locator('input[type="checkbox"]');
@@ -101,8 +103,12 @@ test.describe('이음다리 Phase 5 E2E', () => {
     const dialog = page.locator('dialog[open]');
     await expect(dialog).toBeVisible();
     await expect(dialog.locator('img').first()).toBeVisible();
-    await expect(dialog.getByText(/매칭 점수 분석|매칭 점수/)).toBeVisible();
-    await expect(dialog.getByText(/보호자 후기|후기/)).toBeVisible();
+    await expect(
+      dialog.getByRole('heading', { name: /매칭 점수 분석/ }),
+    ).toBeVisible();
+    await expect(
+      dialog.getByRole('heading', { name: /보호자 후기/ }),
+    ).toBeVisible();
     await page.screenshot({
       path: capture('06-profile-modal.png'),
       fullPage: true,
@@ -118,9 +124,15 @@ test.describe('이음다리 Phase 5 E2E', () => {
     await page.getByRole('button', { name: '이 분께 요청' }).first().click();
     const dialog = page.locator('dialog[open]');
     await expect(dialog).toBeVisible();
-    await expect(dialog.getByText(/표준계약/)).toBeVisible();
-    await expect(dialog.getByText(/에스크로/)).toBeVisible();
-    await expect(dialog.getByText(/보험/)).toBeVisible();
+    await expect(
+      dialog.getByText('표준계약서가 자동 생성됩니다'),
+    ).toBeVisible();
+    await expect(
+      dialog.getByText('에스크로 결제로 완료 후 정산됩니다'),
+    ).toBeVisible();
+    await expect(
+      dialog.getByText('배상책임보험이 자동 적용됩니다'),
+    ).toBeVisible();
     await page.screenshot({
       path: capture('07-request-confirm.png'),
       fullPage: true,
@@ -150,7 +162,7 @@ test.describe('이음다리 Phase 5 E2E', () => {
     await listenConsole(page, errors);
     await page.goto('/guardian/request');
     await expect(page.getByRole('heading', { name: '간병 신청' })).toBeVisible();
-    await expect(page.getByText(/1\s*\/\s*6/)).toBeVisible();
+    await expect(page.getByText(/1\s*\/\s*6/).first()).toBeVisible();
     await page.screenshot({
       path: capture('09-care-request-form.png'),
       fullPage: true,
