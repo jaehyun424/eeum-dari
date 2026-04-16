@@ -1,5 +1,6 @@
 import type { CaregiverProfile, CareRequest } from '@/lib/types/database';
 import type {
+  CaregiverMatch,
   MatchBreakdown,
   MatchResult,
   MatchScore,
@@ -16,6 +17,21 @@ export const WEIGHTS = {
   availability: 0.1,
   riskHandling: 0.05,
 } as const;
+
+// 가중치 합 assertion — dev 시 잘못된 가중치를 빨리 발견
+const WEIGHT_SUM = Object.values(WEIGHTS).reduce((a, b) => a + b, 0);
+if (Math.abs(WEIGHT_SUM - 1) > 1e-6) {
+  throw new Error(
+    `[matching] WEIGHTS 합이 1.0이 아닙니다: ${WEIGHT_SUM}. 가중치 재조정이 필요합니다.`,
+  );
+}
+
+// 0~100 정수 clamp + NaN 방어 헬퍼
+// breakdown/totalScore 모두 이 함수를 통과하도록 강제
+function clampScore(value: number): number {
+  if (!Number.isFinite(value)) return 0;
+  return Math.max(0, Math.min(100, Math.round(value)));
+}
 
 // 수동심사가 필요한 위험 플래그
 const MANUAL_REVIEW_FLAGS = ['risk_trach', 'risk_suction', 'risk_isolation'];
@@ -105,7 +121,8 @@ function extractRegion(hospitalId: string): { fullRegion: string; city: string }
 
 function calcDistance(caregiver: CaregiverProfile, hospitalId: string): number {
   const { fullRegion, city } = extractRegion(hospitalId);
-  if (!fullRegion) return 40;
+  // 병원 정보/좌표가 없을 때 NaN을 반환하는 대신 중립 점수(50)로 폴백
+  if (!fullRegion) return 50;
 
   if (caregiver.available_areas.includes(fullRegion)) return 100;
   if (caregiver.available_areas.some((a) => a.startsWith(city))) return 70;
@@ -192,23 +209,26 @@ function calculateMatchScore(
   caregiver: CaregiverProfile,
   careRequest: CareRequest,
 ): MatchScore {
+  // 각 breakdown은 clampScore로 0~100 정수 강제 (CLAUDE.md 불변 규칙)
   const breakdown: MatchBreakdown = {
-    skillMatch: calcSkillMatch(caregiver, careRequest.care_items),
-    experience: calcExperience(caregiver.experience_years),
-    rating: calcRating(caregiver.rating, caregiver.total_reviews),
-    distance: calcDistance(caregiver, careRequest.hospital_id),
-    availability: calcAvailability(caregiver.response_time_minutes),
-    riskHandling: calcRiskHandling(caregiver, careRequest.risk_flags),
+    skillMatch: clampScore(calcSkillMatch(caregiver, careRequest.care_items)),
+    experience: clampScore(calcExperience(caregiver.experience_years)),
+    rating: clampScore(calcRating(caregiver.rating, caregiver.total_reviews)),
+    distance: clampScore(calcDistance(caregiver, careRequest.hospital_id)),
+    availability: clampScore(calcAvailability(caregiver.response_time_minutes)),
+    riskHandling: clampScore(calcRiskHandling(caregiver, careRequest.risk_flags)),
   };
 
-  const totalScore = Math.round(
+  const rawTotal =
     breakdown.skillMatch * WEIGHTS.skillMatch +
-      breakdown.experience * WEIGHTS.experience +
-      breakdown.rating * WEIGHTS.rating +
-      breakdown.distance * WEIGHTS.distance +
-      breakdown.availability * WEIGHTS.availability +
-      breakdown.riskHandling * WEIGHTS.riskHandling,
-  );
+    breakdown.experience * WEIGHTS.experience +
+    breakdown.rating * WEIGHTS.rating +
+    breakdown.distance * WEIGHTS.distance +
+    breakdown.availability * WEIGHTS.availability +
+    breakdown.riskHandling * WEIGHTS.riskHandling;
+
+  // totalScore도 clamp — NaN/음수/100 초과 모두 방어
+  const totalScore = clampScore(rawTotal);
 
   const manualReviewRequired = careRequest.risk_flags.some((f) =>
     MANUAL_REVIEW_FLAGS.includes(f),
@@ -230,6 +250,25 @@ export function generateMatches(
   careRequest: CareRequest,
   allCaregivers: CaregiverProfile[] = mockCaregivers,
 ): MatchResult {
+  const manualReviewRequired = careRequest.risk_flags.some((f) =>
+    MANUAL_REVIEW_FLAGS.includes(f),
+  );
+  const manualReviewReason = manualReviewRequired
+    ? '의료행위 경계 항목이 포함되어 있어 전문 간병인 배정을 위한 수동 심사가 필요합니다.'
+    : null;
+
+  // edge case: 간병인 풀이 비어있을 때 — crash 대신 빈 배열 + topMatch=null 반환
+  if (allCaregivers.length === 0) {
+    return {
+      careRequest,
+      matches: [],
+      topMatch: null,
+      manualReviewRequired,
+      manualReviewReason,
+      createdAt: new Date().toISOString(),
+    };
+  }
+
   const preferredGender = (careRequest.preferences.preferredGender ?? 'any') as
     | 'male'
     | 'female'
@@ -240,7 +279,7 @@ export function generateMatches(
     return c.gender === preferredGender;
   });
 
-  const scored = eligible
+  const scored: CaregiverMatch[] = eligible
     .map((caregiver) => ({
       caregiver,
       score: calculateMatchScore(caregiver, careRequest),
@@ -248,17 +287,13 @@ export function generateMatches(
     .sort((a, b) => b.score.totalScore - a.score.totalScore)
     .slice(0, 5);
 
-  const manualReviewRequired = careRequest.risk_flags.some((f) =>
-    MANUAL_REVIEW_FLAGS.includes(f),
-  );
-
   return {
     careRequest,
     matches: scored,
+    // 0명 결과일 때도 topMatch는 null로 명시 (undefined 금지)
+    topMatch: scored[0] ?? null,
     manualReviewRequired,
-    manualReviewReason: manualReviewRequired
-      ? '의료행위 경계 항목이 포함되어 있어 전문 간병인 배정을 위한 수동 심사가 필요합니다.'
-      : null,
+    manualReviewReason,
     createdAt: new Date().toISOString(),
   };
 }

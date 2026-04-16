@@ -47,19 +47,58 @@ export function CareRequestForm() {
   const isSubmitDisabled =
     (isLastStep && formData.sensitiveInfoConsent !== true) || isSubmitting;
 
+  // 제출 직전 formData 유효성 재확인
+  // UI 단계에서 막혀야 하지만, 이중 방어로 여기서도 검사한다
+  const validateBeforeSubmit = (): string | null => {
+    if (!formData.patientName || formData.patientName.trim() === '') {
+      return '환자 이름을 입력해주세요';
+    }
+    if (!formData.careItems || formData.careItems.length === 0) {
+      return '간병 항목을 최소 1개 선택해주세요';
+    }
+    if (formData.sensitiveInfoConsent !== true) {
+      return '민감정보 수집 동의가 필요합니다';
+    }
+    return null;
+  };
+
   const handleSubmit = async () => {
-    if (isSubmitting) return;
+    // 중복 제출 방지 — 이미 진행 중이면 경고만 남기고 무시
+    if (isSubmitting) {
+      console.warn('[CareRequestForm] Duplicate submit blocked');
+      return;
+    }
+
+    const validationError = validateBeforeSubmit();
+    if (validationError !== null) {
+      setToastError(validationError);
+      return;
+    }
+
     setIsSubmitting(true);
     try {
-      const res = await fetch('/api/matching', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ careRequestId: SUBMITTED_REQUEST_ID }),
-      });
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data?.error ?? '매칭 요청에 실패했습니다.');
+      let res: Response;
+      try {
+        res = await fetch('/api/matching', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ careRequestId: SUBMITTED_REQUEST_ID }),
+        });
+      } catch {
+        // fetch 자체 실패 — 오프라인/DNS/CORS 등 네트워크 계층 오류
+        throw new Error('네트워크 연결을 확인해주세요');
       }
+
+      if (!res.ok) {
+        if (res.status >= 500) {
+          // 서버 장애 — 사용자에게는 구체 메시지 숨김
+          throw new Error('서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요');
+        }
+        // 4xx — 응답 body의 error 필드를 그대로 표시
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data?.error ?? '잘못된 요청입니다');
+      }
+
       router.push(`/guardian/matching/${SUBMITTED_REQUEST_ID}`);
     } catch (err) {
       setToastError(
