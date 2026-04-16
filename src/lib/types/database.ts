@@ -84,23 +84,59 @@ export interface Contract {
   id: string;
   care_request_id: string;
   caregiver_id: string;
+  caregiver_name: string;
+  caregiver_profile_image: string;
   guardian_id: string;
+  guardian_name: string;
+  hospital_name: string;
+  patient_name: string;
   status: ContractStatus;
   start_date: string;
   end_date: string;
+  days_total: number;
+  days_elapsed: number;
   daily_rate: number;
   total_amount: number;
+  review_submitted: boolean;
   created_at: string;
   updated_at: string;
 }
+
+export type WorkLogMood = 'happy' | 'normal' | 'tired';
 
 export interface WorkLog {
   id: string;
   contract_id: string;
   caregiver_id: string;
+  patient_name: string;
   date: string;
   start_time: string;
   end_time: string;
   notes: string;
+  mood: WorkLogMood;
+  significant_events: string[];
+  meal_count: number;
+  bathroom_count: number;
+  medicine_taken: boolean;
   created_at: string;
+}
+
+export type EarningStatus = 'pending' | 'paid';
+
+export interface EarningEntry {
+  id: string;
+  contract_id: string;
+  caregiver_id: string;
+  work_date: string;
+  hours: number;
+  amount: number;
+  status: EarningStatus;
+  paid_at: string | null;
+}
+
+export interface MonthlyEarning {
+  month: string; // e.g. '2026-04'
+  total: number;
+  days_worked: number;
+  status: EarningStatus;
 }
