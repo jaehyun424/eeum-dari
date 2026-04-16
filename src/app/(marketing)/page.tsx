@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, type ReactNode } from 'react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import {
@@ -18,17 +19,12 @@ import {
   Building2,
   ArrowRight,
 } from 'lucide-react';
-import { type ReactNode } from 'react';
 
 /* ─── Animation ─── */
 
 const fadeUp = {
-  hidden: { opacity: 0, y: 24 },
+  hidden: { opacity: 0, y: 10 },
   visible: { opacity: 1, y: 0 },
-};
-
-const stagger = {
-  visible: { transition: { staggerChildren: 0.1 } },
 };
 
 function FadeIn({
@@ -44,7 +40,7 @@ function FadeIn({
     <motion.div
       initial="hidden"
       whileInView="visible"
-      viewport={{ once: true, margin: '-60px' }}
+      viewport={{ once: true, amount: 0.1 }}
       variants={fadeUp}
       transition={{ duration: 0.5, delay }}
       className={className}
@@ -136,25 +132,80 @@ const trustItems = [
 
 /* ─── Hero Visual ─── */
 
+function HeroIllustration() {
+  return (
+    <svg
+      viewBox="0 0 800 440"
+      xmlns="http://www.w3.org/2000/svg"
+      className="h-[440px] w-full"
+      aria-hidden
+    >
+      <defs>
+        <linearGradient id="heroBg" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#EFF5FF" />
+          <stop offset="100%" stopColor="#DAE8FD" />
+        </linearGradient>
+      </defs>
+      <rect width="800" height="440" fill="url(#heroBg)" />
+
+      {/* 부드러운 배경 원 */}
+      <circle cx="120" cy="90" r="70" fill="#FFFFFF" opacity="0.5" />
+      <circle cx="700" cy="360" r="90" fill="#FFFFFF" opacity="0.45" />
+
+      {/* 중앙 로고 확대 — 이음다리 */}
+      <g transform="translate(400, 220)">
+        <circle cx="-130" cy="0" r="70" fill="#1E56A0" />
+        <circle cx="130" cy="0" r="70" fill="#1E56A0" />
+        <path
+          d="M -65 0 C 0 -90, 0 -90, 65 0"
+          stroke="#E8835A"
+          strokeWidth="12"
+          strokeLinecap="round"
+          fill="none"
+        />
+        <path
+          d="M -65 0 C 0 90, 0 90, 65 0"
+          stroke="#E8835A"
+          strokeWidth="12"
+          strokeLinecap="round"
+          fill="none"
+        />
+        {/* 중앙 하트 */}
+        <path
+          d="M0,12 C-16,-8 -36,6 0,34 C36,6 16,-8 0,12 Z"
+          fill="#FFFFFF"
+        />
+      </g>
+    </svg>
+  );
+}
+
 function HeroVisual() {
+  const [videoFailed, setVideoFailed] = useState(false);
+
   return (
     <motion.div
-      initial={{ opacity: 0, y: 40 }}
+      initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.7, delay: 0.2 }}
       className="relative overflow-hidden rounded-2xl bg-brand-50"
     >
-      <video
-        autoPlay
-        loop
-        muted
-        playsInline
-        className="h-[440px] w-full object-cover"
-        poster=""
-      >
-        <source src="/hero-video.mp4" type="video/mp4" />
-      </video>
-      <div className="absolute inset-0 bg-black/10" />
+      {videoFailed ? (
+        <HeroIllustration />
+      ) : (
+        <video
+          autoPlay
+          loop
+          muted
+          playsInline
+          preload="auto"
+          className="h-[440px] w-full object-cover"
+          onError={() => setVideoFailed(true)}
+        >
+          <source src="/hero-video.mp4" type="video/mp4" />
+        </video>
+      )}
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-tr from-brand-900/15 via-transparent to-transparent" />
     </motion.div>
   );
 }
@@ -224,31 +275,23 @@ export default function LandingPage() {
             </h2>
           </FadeIn>
 
-          <motion.div
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, margin: '-60px' }}
-            variants={stagger}
-            className="mt-12 sm:mt-16 grid gap-10 sm:gap-8 sm:grid-cols-3"
-          >
-            {problems.map((p) => (
-              <motion.div
-                key={p.title}
-                variants={fadeUp}
-                transition={{ duration: 0.5 }}
-              >
-                <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-100 text-brand-600">
-                  <p.icon className="h-7 w-7" />
+          <div className="mt-12 sm:mt-16 grid gap-10 sm:gap-8 sm:grid-cols-3">
+            {problems.map((p, i) => (
+              <FadeIn key={p.title} delay={i * 0.1}>
+                <div>
+                  <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-100 text-brand-600">
+                    <p.icon className="h-7 w-7" />
+                  </div>
+                  <h3 className="mt-5 text-xl sm:text-2xl font-bold text-foreground">
+                    {p.title}
+                  </h3>
+                  <p className="mt-3 text-base sm:text-lg text-muted leading-relaxed">
+                    {p.desc}
+                  </p>
                 </div>
-                <h3 className="mt-5 text-xl sm:text-2xl font-bold text-foreground">
-                  {p.title}
-                </h3>
-                <p className="mt-3 text-base sm:text-lg text-muted leading-relaxed">
-                  {p.desc}
-                </p>
-              </motion.div>
+              </FadeIn>
             ))}
-          </motion.div>
+          </div>
         </div>
       </section>
 
@@ -267,35 +310,26 @@ export default function LandingPage() {
             </p>
           </FadeIn>
 
-          <motion.div
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, margin: '-60px' }}
-            variants={stagger}
-            className="mt-12 sm:mt-16 grid gap-12 sm:gap-6 sm:grid-cols-2 lg:grid-cols-4"
-          >
-            {steps.map((s) => (
-              <motion.div
-                key={s.num}
-                variants={fadeUp}
-                transition={{ duration: 0.5 }}
-                className="flex flex-col items-center text-center"
-              >
-                <div className="flex h-20 w-20 items-center justify-center rounded-full bg-brand-50 text-brand-600">
-                  <s.icon className="h-9 w-9" />
+          <div className="mt-12 sm:mt-16 grid gap-12 sm:gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            {steps.map((s, i) => (
+              <FadeIn key={s.num} delay={i * 0.1}>
+                <div className="flex flex-col items-center text-center">
+                  <div className="flex h-20 w-20 items-center justify-center rounded-full bg-brand-50 text-brand-600">
+                    <s.icon className="h-9 w-9" />
+                  </div>
+                  <span className="mt-5 text-sm font-bold text-brand-600 tracking-widest">
+                    STEP {s.num}
+                  </span>
+                  <h3 className="mt-2 text-xl font-bold text-foreground">
+                    {s.title}
+                  </h3>
+                  <p className="mt-2 text-base text-muted leading-relaxed max-w-[240px]">
+                    {s.desc}
+                  </p>
                 </div>
-                <span className="mt-5 text-sm font-bold text-brand-600 tracking-widest">
-                  STEP {s.num}
-                </span>
-                <h3 className="mt-2 text-xl font-bold text-foreground">
-                  {s.title}
-                </h3>
-                <p className="mt-2 text-base text-muted leading-relaxed max-w-[240px]">
-                  {s.desc}
-                </p>
-              </motion.div>
+              </FadeIn>
             ))}
-          </motion.div>
+          </div>
         </div>
       </section>
 
@@ -311,32 +345,23 @@ export default function LandingPage() {
             </h2>
           </FadeIn>
 
-          <motion.div
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, margin: '-60px' }}
-            variants={stagger}
-            className="mt-12 sm:mt-16 grid gap-6 sm:grid-cols-2 lg:grid-cols-3"
-          >
-            {trustItems.map((t) => (
-              <motion.div
-                key={t.title}
-                variants={fadeUp}
-                transition={{ duration: 0.5 }}
-                className="rounded-2xl border border-border bg-background p-6 sm:p-8"
-              >
-                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-brand-50 text-brand-600">
-                  <t.icon className="h-6 w-6" />
+          <div className="mt-12 sm:mt-16 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {trustItems.map((t, i) => (
+              <FadeIn key={t.title} delay={i * 0.08}>
+                <div className="rounded-2xl border border-border bg-background p-6 sm:p-8 h-full">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-brand-50 text-brand-600">
+                    <t.icon className="h-6 w-6" />
+                  </div>
+                  <h3 className="mt-4 text-lg sm:text-xl font-bold text-foreground">
+                    {t.title}
+                  </h3>
+                  <p className="mt-2 text-base text-muted leading-relaxed">
+                    {t.desc}
+                  </p>
                 </div>
-                <h3 className="mt-4 text-lg sm:text-xl font-bold text-foreground">
-                  {t.title}
-                </h3>
-                <p className="mt-2 text-base text-muted leading-relaxed">
-                  {t.desc}
-                </p>
-              </motion.div>
+              </FadeIn>
             ))}
-          </motion.div>
+          </div>
         </div>
       </section>
 

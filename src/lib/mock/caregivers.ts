@@ -1,7 +1,8 @@
 import type { CaregiverProfile } from '@/lib/types/database';
 
-// pravatar 이미지 ID는 실제 존재하는 사진만 사용
-// 여성: 1,5,9,10,16,19,23,32,41 / 남성: 4,11,33
+// pravatar 이미지 ID는 실존하는 사진만 사용
+// 여성 valid: 1,5,9,16,19,20,23,24,25,26,32,36,38,41,44,45,47,48,49
+// 남성 valid: 3,7,8,11,12,13,14,15,17,18,33,51,52,53,57,60,65,68,69,70
 
 const NOW = '2026-04-10T09:00:00.000Z';
 
@@ -89,7 +90,7 @@ export const mockCaregivers: CaregiverProfile[] = [
     completed_jobs: 268,
     response_time_minutes: 15,
     bio: '분당과 서초 일대에서 10년째 일하고 있습니다. 치매 초기~중기 환자분 돌봄과 낙상 예방에 특히 신경을 많이 씁니다. 밝은 성격으로 환자분들과 잘 지냅니다.',
-    profile_image: 'https://i.pravatar.cc/300?img=10',
+    profile_image: 'https://i.pravatar.cc/300?img=20',
     is_verified: true,
     created_at: NOW,
     updated_at: NOW,
@@ -221,7 +222,7 @@ export const mockCaregivers: CaregiverProfile[] = [
     completed_jobs: 421,
     response_time_minutes: 11,
     bio: '남자 간병인이 꼭 필요한 상황에서 찾아주시는 분들이 많습니다. 중량 환자 이승 보조와 체위변경에 강점이 있고, 치매 어르신 안전 돌봄도 오래 해왔습니다.',
-    profile_image: 'https://i.pravatar.cc/300?img=4',
+    profile_image: 'https://i.pravatar.cc/300?img=7',
     is_verified: true,
     created_at: NOW,
     updated_at: NOW,

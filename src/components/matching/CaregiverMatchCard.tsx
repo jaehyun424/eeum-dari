@@ -25,7 +25,6 @@ function useCountUp(target: number, duration = 900) {
     let raf = 0;
     const tick = (now: number) => {
       const p = Math.min(1, (now - start) / duration);
-      // easeOutCubic
       const eased = 1 - Math.pow(1 - p, 3);
       setValue(Math.round(eased * target));
       if (p < 1) raf = requestAnimationFrame(tick);
@@ -35,6 +34,10 @@ function useCountUp(target: number, duration = 900) {
   }, [target, duration]);
 
   return value;
+}
+
+function avatarFallback(name: string): string {
+  return `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=1E56A0&color=fff&size=300&font-size=0.42&bold=true`;
 }
 
 export function CaregiverMatchCard({
@@ -48,7 +51,7 @@ export function CaregiverMatchCard({
 
   return (
     <motion.article
-      initial={{ opacity: 0, y: 16 }}
+      initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.35, ease: 'easeOut' }}
       className={`relative rounded-xl border bg-background p-5 sm:p-6 shadow-sm transition-shadow hover:shadow-md ${
@@ -57,18 +60,35 @@ export function CaregiverMatchCard({
           : 'border-border'
       }`}
     >
+      {/* 데스크톱 배지 — absolute */}
       {isBest && (
-        <span className="absolute -top-3 left-5 inline-flex items-center rounded-full bg-accent-500 px-3 py-1 text-xs font-bold text-white shadow">
+        <span className="hidden sm:inline-flex absolute -top-3 left-5 items-center rounded-full bg-accent-500 px-3 py-1 text-xs font-bold text-white shadow">
           BEST MATCH
         </span>
       )}
       {score.manualReviewRequired && (
-        <span className="absolute top-3 right-3 inline-flex items-center rounded-full bg-yellow-100 px-2.5 py-1 text-xs font-semibold text-yellow-800 dark:bg-yellow-900/40 dark:text-yellow-200">
+        <span className="hidden sm:inline-flex absolute top-3 right-3 items-center rounded-full bg-yellow-100 px-2.5 py-1 text-xs font-semibold text-yellow-800 dark:bg-yellow-900/40 dark:text-yellow-200">
           수동 심사 대기
         </span>
       )}
 
-      {/* 상단: 프로필 + 점수 */}
+      {/* 모바일 배지 행 (Row 1) — inline block */}
+      {(isBest || score.manualReviewRequired) && (
+        <div className="mb-4 flex flex-wrap items-center gap-2 sm:hidden">
+          {isBest && (
+            <span className="inline-flex items-center rounded-full bg-accent-500 px-3 py-1 text-xs font-bold text-white shadow">
+              BEST MATCH
+            </span>
+          )}
+          {score.manualReviewRequired && (
+            <span className="inline-flex items-center rounded-full bg-yellow-100 px-2.5 py-1 text-xs font-semibold text-yellow-800 dark:bg-yellow-900/40 dark:text-yellow-200">
+              수동 심사 대기
+            </span>
+          )}
+        </div>
+      )}
+
+      {/* Row 2 (모바일) / 좌측 (데스크톱): 프로필 사진 + 이름/정보 */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:gap-5">
         <div className="flex items-start gap-4 sm:gap-5 sm:flex-1">
           <img
@@ -77,7 +97,14 @@ export function CaregiverMatchCard({
             width={96}
             height={96}
             loading="lazy"
-            className="h-20 w-20 sm:h-24 sm:w-24 shrink-0 rounded-xl object-cover"
+            onError={(e) => {
+              const img = e.currentTarget;
+              if (!img.dataset.fallback) {
+                img.dataset.fallback = '1';
+                img.src = avatarFallback(caregiver.name);
+              }
+            }}
+            className="h-20 w-20 sm:h-24 sm:w-24 shrink-0 rounded-xl object-cover bg-warm-gray-100"
           />
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-2">
@@ -113,9 +140,9 @@ export function CaregiverMatchCard({
           </div>
         </div>
 
-        {/* 매칭 점수 */}
+        {/* Row 3 (모바일) / 우측 (데스크톱): 매칭 점수 */}
         <div
-          className={`flex shrink-0 items-center gap-3 rounded-lg px-4 py-3 sm:flex-col sm:items-center sm:justify-center sm:gap-0 sm:min-w-[108px] ${
+          className={`flex w-full items-center justify-between gap-3 rounded-lg px-4 py-3 sm:w-auto sm:shrink-0 sm:flex-col sm:items-center sm:justify-center sm:gap-0 sm:min-w-[108px] ${
             isBest ? 'bg-brand-50 dark:bg-brand-900/30' : 'bg-warm-gray-50 dark:bg-warm-gray-900'
           }`}
         >

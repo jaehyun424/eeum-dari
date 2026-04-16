@@ -44,7 +44,14 @@ export function CaregiverProfileModal({
           alt=""
           width={88}
           height={88}
-          className="h-20 w-20 shrink-0 rounded-xl object-cover"
+          onError={(e) => {
+            const img = e.currentTarget;
+            if (!img.dataset.fallback) {
+              img.dataset.fallback = '1';
+              img.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(caregiver.name)}&background=1E56A0&color=fff&size=300&bold=true`;
+            }
+          }}
+          className="h-20 w-20 shrink-0 rounded-xl object-cover bg-warm-gray-100"
         />
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
