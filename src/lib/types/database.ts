@@ -46,18 +46,38 @@ export interface CareRequest {
   updated_at: string;
 }
 
+// CaregiverProfile: Supabase에서는 caregiver_profiles 테이블 + profiles 조인 뷰로 제공 예정
+// name/age/gender/profile_image/is_verified 등은 조인된 profile 필드로 취급
 export interface CaregiverProfile {
   id: string;
   user_id: string;
+  name: string;
+  age: number;
+  gender: 'male' | 'female';
   experience_years: number;
   certifications: string[];
+  specialties: string[];
   available_areas: string[];
   hourly_rate: number;
-  bio: string;
+  daily_rate: number;
   rating: number;
   total_reviews: number;
+  completed_jobs: number;
+  response_time_minutes: number;
+  bio: string;
+  profile_image: string;
+  is_verified: boolean;
   created_at: string;
   updated_at: string;
+}
+
+export interface CaregiverReview {
+  id: string;
+  caregiver_id: string;
+  guardian_name: string;
+  rating: number;
+  comment: string;
+  date: string;
 }
 
 export interface Contract {
