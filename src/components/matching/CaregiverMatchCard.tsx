@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import { Star, Clock, CheckCircle2, Wallet } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
+import { Avatar } from '@/components/ui/Avatar';
 import { formatCurrency } from '@/lib/utils/format';
 import type { CaregiverProfile } from '@/lib/types/database';
 import type { MatchScore } from '@/lib/types/matching';
@@ -34,10 +35,6 @@ function useCountUp(target: number, duration = 900) {
   }, [target, duration]);
 
   return value;
-}
-
-function avatarFallback(name: string): string {
-  return `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=1E56A0&color=fff&size=300&font-size=0.42&bold=true`;
 }
 
 export function CaregiverMatchCard({
@@ -91,20 +88,11 @@ export function CaregiverMatchCard({
       {/* Row 2 (모바일) / 좌측 (데스크톱): 프로필 사진 + 이름/정보 */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:gap-5">
         <div className="flex items-start gap-4 sm:gap-5 sm:flex-1">
-          <img
+          <Avatar
             src={caregiver.profile_image}
-            alt=""
-            width={96}
-            height={96}
-            loading="lazy"
-            onError={(e) => {
-              const img = e.currentTarget;
-              if (!img.dataset.fallback) {
-                img.dataset.fallback = '1';
-                img.src = avatarFallback(caregiver.name);
-              }
-            }}
-            className="h-20 w-20 sm:h-24 sm:w-24 shrink-0 rounded-xl object-cover bg-warm-gray-100"
+            name={caregiver.name}
+            size={96}
+            className="h-20 w-20 sm:h-24 sm:w-24 shrink-0"
           />
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-2">

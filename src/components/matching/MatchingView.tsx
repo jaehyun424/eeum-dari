@@ -13,6 +13,7 @@ import { RequestConfirmModal } from './RequestConfirmModal';
 import { EmptyState } from './EmptyState';
 import type { CaregiverProfile } from '@/lib/types/database';
 import type { MatchScore } from '@/lib/types/matching';
+import type { CareRequestFormData } from '@/lib/types/forms';
 
 const MIN_ANIMATION_MS = 3000;
 
@@ -20,9 +21,26 @@ interface Props {
   careRequestId: string;
 }
 
+// sessionStorage에서 방금 제출한 formData 복구. 직렬화 실패/만료 시 null.
+function readPersistedFormData(
+  id: string,
+): Partial<CareRequestFormData> | undefined {
+  if (typeof window === 'undefined') return undefined;
+  try {
+    const raw = window.sessionStorage.getItem(`eeum:careRequest:${id}`);
+    if (!raw) return undefined;
+    const parsed = JSON.parse(raw) as {
+      formData?: Partial<CareRequestFormData>;
+    };
+    return parsed.formData;
+  } catch {
+    return undefined;
+  }
+}
+
 export function MatchingView({ careRequestId }: Props) {
   const router = useRouter();
-  const { status, result, error, startMatching } = useMatching();
+  const { status, result, error, notFound, requestMatch } = useMatching();
   const [animationDone, setAnimationDone] = useState(false);
   const [detailMatch, setDetailMatch] = useState<{
     caregiver: CaregiverProfile;
@@ -35,19 +53,29 @@ export function MatchingView({ careRequestId }: Props) {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
-    startMatching(careRequestId);
+    const persisted = readPersistedFormData(careRequestId);
+    requestMatch({ careRequestId, formData: persisted });
     const timer = setTimeout(() => setAnimationDone(true), MIN_ANIMATION_MS);
     return () => clearTimeout(timer);
-  }, [careRequestId, startMatching]);
+  }, [careRequestId, requestMatch]);
 
-  const ready =
-    animationDone && (status === 'success' || status === 'error');
+  const ready = animationDone && (status === 'success' || status === 'error');
 
   if (!ready) {
     return <MatchingProgress />;
   }
 
   if (status === 'error') {
+    if (notFound) {
+      return (
+        <EmptyState
+          title="신청 정보를 찾을 수 없어요"
+          description="매칭 세션이 만료되었거나 잘못된 경로입니다. 다시 신청해주세요."
+          actionLabel="새로 신청하기"
+          onAction={() => router.push('/guardian/request')}
+        />
+      );
+    }
     return (
       <EmptyState
         title="매칭 중 문제가 발생했어요"
@@ -55,7 +83,8 @@ export function MatchingView({ careRequestId }: Props) {
         actionLabel="다시 시도"
         onAction={() => {
           setAnimationDone(false);
-          startMatching(careRequestId);
+          const persisted = readPersistedFormData(careRequestId);
+          requestMatch({ careRequestId, formData: persisted });
           setTimeout(() => setAnimationDone(true), MIN_ANIMATION_MS);
         }}
       />

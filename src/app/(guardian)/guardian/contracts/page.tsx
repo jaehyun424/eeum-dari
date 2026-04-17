@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { FileText, MessageSquareText, Plus, Star } from 'lucide-react';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
+import { Avatar } from '@/components/ui/Avatar';
 import { EmptyState } from '@/components/matching/EmptyState';
 import { formatCurrency, formatDate } from '@/lib/utils/format';
 import { getContractsForGuardian } from '@/lib/mock/contracts';
@@ -26,10 +27,6 @@ const STATUS_BADGE: Record<ContractStatus, { label: string; variant: 'brand' | '
   completed: { label: '완료', variant: 'success' },
   terminated: { label: '종료', variant: 'danger' },
 };
-
-function avatarFallback(name: string): string {
-  return `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=1E56A0&color=fff&size=300&bold=true`;
-}
 
 export default function ContractsPage() {
   const contracts = getContractsForGuardian();
@@ -128,19 +125,11 @@ function ContractCard({ contract }: { contract: Contract }) {
       </div>
 
       <div className="mt-4 flex flex-col gap-4 sm:flex-row sm:items-start sm:gap-5">
-        <img
+        <Avatar
           src={contract.caregiver_profile_image}
-          alt=""
-          width={72}
-          height={72}
-          onError={(e) => {
-            const img = e.currentTarget;
-            if (!img.dataset.fallback) {
-              img.dataset.fallback = '1';
-              img.src = avatarFallback(contract.caregiver_name);
-            }
-          }}
-          className="h-16 w-16 sm:h-20 sm:w-20 shrink-0 rounded-xl object-cover bg-warm-gray-100"
+          name={contract.caregiver_name}
+          size={72}
+          className="h-16 w-16 sm:h-20 sm:w-20 shrink-0"
         />
         <div className="min-w-0 flex-1">
           <h2 className="text-lg font-bold text-foreground">

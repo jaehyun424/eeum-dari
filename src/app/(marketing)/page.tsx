@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, type ReactNode } from 'react';
+import { useState, useSyncExternalStore, type ReactNode } from 'react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import {
@@ -14,7 +14,6 @@ import {
   FileCheck,
   ShieldCheck,
   Shield,
-  Files,
   Stethoscope,
   Building2,
   ArrowRight,
@@ -99,34 +98,40 @@ const steps = [
 
 const trustItems = [
   {
-    icon: FileCheck,
-    title: '표준계약서',
-    desc: '법적 효력을 갖춘 전자계약으로 양측의 권리를 보호합니다.',
-  },
-  {
-    icon: ShieldCheck,
-    title: '안심결제',
-    desc: '에스크로 결제로 간병 완료 후 정산. 선불 위험이 없습니다.',
-  },
-  {
-    icon: Shield,
-    title: '배상책임보험',
-    desc: '간병 중 사고에 대비한 보험이 자동 적용됩니다.',
-  },
-  {
-    icon: Files,
-    title: '서류 자동화',
-    desc: '계약서, 근무일지, 정산서를 자동 생성하고 관리합니다.',
+    icon: Sparkles,
+    title: '설명 가능한 매칭',
+    desc: '케어 항목·경력·평점·거리·응답속도·위험 대응력을 가중 평균해 점수로 공개합니다.',
+    badge: null,
   },
   {
     icon: Stethoscope,
     title: '의료행위 경계관리',
-    desc: '간병과 의료행위의 경계를 명확히 하여 안전을 지킵니다.',
+    desc: '간병과 의료행위의 경계를 명확히 하여, 경계 항목은 수동 심사로 배정합니다.',
+    badge: null,
   },
   {
     icon: Building2,
-    title: '병원규칙 준수',
-    desc: '각 병원의 간병 규정을 사전에 안내하여 마찰을 줄입니다.',
+    title: '병원규칙 안내',
+    desc: '각 병원의 간병 규정을 사전에 안내하여 첫날부터의 마찰을 줄입니다.',
+    badge: null,
+  },
+  {
+    icon: FileCheck,
+    title: '표준계약서',
+    desc: '양측이 확인·서명하는 표준 간병 계약서 템플릿을 준비 중입니다.',
+    badge: '준비 중',
+  },
+  {
+    icon: ShieldCheck,
+    title: '안심결제',
+    desc: '에스크로 기반 안심결제를 설계 중이며, 정식 출시와 함께 도입됩니다.',
+    badge: '준비 중',
+  },
+  {
+    icon: Shield,
+    title: '배상책임보험',
+    desc: '간병 중 사고에 대비한 배상책임보험 연동을 준비하고 있습니다.',
+    badge: '준비 중',
   },
 ];
 
@@ -182,6 +187,9 @@ function HeroIllustration() {
 
 function HeroVisual() {
   const [videoFailed, setVideoFailed] = useState(false);
+  // prefers-reduced-motion 사용자에겐 정적 SVG 일러스트로 바로 전환
+  const prefersReduced = useMediaQuery('(prefers-reduced-motion: reduce)');
+  const showStatic = videoFailed || prefersReduced;
 
   return (
     <motion.div
@@ -190,7 +198,7 @@ function HeroVisual() {
       transition={{ duration: 0.7, delay: 0.2 }}
       className="relative overflow-hidden rounded-2xl bg-brand-50"
     >
-      {videoFailed ? (
+      {showStatic ? (
         <HeroIllustration />
       ) : (
         <video
@@ -198,7 +206,9 @@ function HeroVisual() {
           loop
           muted
           playsInline
-          preload="auto"
+          preload="metadata"
+          poster="/hero-poster.svg"
+          aria-hidden
           className="h-[440px] w-full object-cover"
           onError={() => setVideoFailed(true)}
         >
@@ -207,6 +217,23 @@ function HeroVisual() {
       )}
       <div className="pointer-events-none absolute inset-0 bg-gradient-to-tr from-brand-900/15 via-transparent to-transparent" />
     </motion.div>
+  );
+}
+
+function useMediaQuery(query: string): boolean {
+  const get = () => {
+    if (typeof window === 'undefined') return false;
+    return window.matchMedia(query).matches;
+  };
+  return useSyncExternalStore(
+    (callback) => {
+      if (typeof window === 'undefined') return () => {};
+      const mql = window.matchMedia(query);
+      mql.addEventListener('change', callback);
+      return () => mql.removeEventListener('change', callback);
+    },
+    get,
+    () => false,
   );
 }
 
@@ -234,7 +261,7 @@ export default function LandingPage() {
                 이음다리가 이어드립니다
               </h1>
               <p className="mt-6 text-lg sm:text-xl text-muted leading-relaxed max-w-lg">
-                검증된 간병인, 표준계약, 안심결제까지.
+                설명 가능한 매칭, 의료행위 경계관리, 병원규칙 안내까지.
                 <br />
                 3분이면 시작할 수 있습니다.
               </p>
@@ -349,8 +376,15 @@ export default function LandingPage() {
             {trustItems.map((t, i) => (
               <FadeIn key={t.title} delay={i * 0.08}>
                 <div className="rounded-2xl border border-border bg-background p-6 sm:p-8 h-full">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-brand-50 text-brand-600">
-                    <t.icon className="h-6 w-6" />
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-brand-50 text-brand-600">
+                      <t.icon className="h-6 w-6" />
+                    </div>
+                    {t.badge && (
+                      <span className="inline-flex items-center rounded-full bg-warm-gray-100 px-2.5 py-1 text-xs font-medium text-warm-gray-700 dark:bg-warm-gray-800 dark:text-warm-gray-200">
+                        {t.badge}
+                      </span>
+                    )}
                   </div>
                   <h3 className="mt-4 text-lg sm:text-xl font-bold text-foreground">
                     {t.title}

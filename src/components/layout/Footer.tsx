@@ -22,7 +22,7 @@ export function Footer() {
               이음다리
             </Link>
             <p className="mt-3 text-sm text-muted leading-relaxed">
-              검증된 간병인, 표준계약, 안심결제까지.<br />
+              설명 가능한 간병 매칭.<br />
               이음다리가 이어드립니다.
             </p>
           </div>
@@ -33,8 +33,8 @@ export function Footer() {
             <nav className="mt-3 flex flex-col gap-2">
               <FooterLink href="/guardian/request">간병 신청</FooterLink>
               <FooterLink href="/register?role=caregiver">간병인 등록</FooterLink>
-              <FooterLink href="/guardian/dashboard">보호자 대시보드</FooterLink>
-              <FooterLink href="/caregiver/dashboard">간병인 대시보드</FooterLink>
+              <FooterLink href="/login?next=/guardian/dashboard">보호자 로그인</FooterLink>
+              <FooterLink href="/login?next=/caregiver/dashboard">간병인 로그인</FooterLink>
             </nav>
           </div>
 
@@ -42,9 +42,9 @@ export function Footer() {
           <div>
             <p className="text-sm font-semibold text-foreground">고객 지원</p>
             <nav className="mt-3 flex flex-col gap-2">
-              <FooterLink href="#">자주 묻는 질문</FooterLink>
-              <FooterLink href="#">공지사항</FooterLink>
-              <FooterLink href="#">문의하기</FooterLink>
+              <FooterLink href="/support/faq">자주 묻는 질문</FooterLink>
+              <FooterLink href="/support/notices">공지사항</FooterLink>
+              <FooterLink href="/support/contact">문의하기</FooterLink>
               <FooterLink href="mailto:support@eeumdari.kr">support@eeumdari.kr</FooterLink>
             </nav>
           </div>
@@ -53,10 +53,10 @@ export function Footer() {
           <div>
             <p className="text-sm font-semibold text-foreground">정책</p>
             <nav className="mt-3 flex flex-col gap-2">
-              <FooterLink href="#">이용약관</FooterLink>
-              <FooterLink href="#">개인정보처리방침</FooterLink>
-              <FooterLink href="#">민감정보 수집·이용 동의</FooterLink>
-              <FooterLink href="#">운영정책</FooterLink>
+              <FooterLink href="/legal/terms">이용약관</FooterLink>
+              <FooterLink href="/legal/privacy">개인정보처리방침</FooterLink>
+              <FooterLink href="/legal/sensitive-info">민감정보 수집·이용 동의</FooterLink>
+              <FooterLink href="/legal/operations">운영정책</FooterLink>
             </nav>
           </div>
         </div>
@@ -64,7 +64,7 @@ export function Footer() {
         <div className="mt-10 border-t border-border pt-6 text-xs text-muted">
           <p>© {year} 이음다리. All rights reserved.</p>
           <p className="mt-1">
-            사업자등록번호 000-00-00000 · 대표 홍길동 · 서울특별시 종로구 ○○로 000
+            베타 서비스 운영 중 · 정식 출시 시 사업자 정보가 공시됩니다.
           </p>
         </div>
       </div>

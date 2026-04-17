@@ -4,6 +4,7 @@ import { Star, CheckCircle2, Award } from 'lucide-react';
 import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
+import { Avatar } from '@/components/ui/Avatar';
 import { MatchScoreBreakdown } from './MatchScoreBreakdown';
 import { getReviewsForCaregiver } from '@/lib/mock/reviews';
 import { formatDate, formatCurrency } from '@/lib/utils/format';
@@ -39,19 +40,11 @@ export function CaregiverProfileModal({
     <Modal isOpen={isOpen} onClose={onClose} size="lg">
       {/* 프로필 헤더 */}
       <section className="flex items-start gap-4">
-        <img
+        <Avatar
           src={caregiver.profile_image}
-          alt=""
-          width={88}
-          height={88}
-          onError={(e) => {
-            const img = e.currentTarget;
-            if (!img.dataset.fallback) {
-              img.dataset.fallback = '1';
-              img.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(caregiver.name)}&background=1E56A0&color=fff&size=300&bold=true`;
-            }
-          }}
-          className="h-20 w-20 shrink-0 rounded-xl object-cover bg-warm-gray-100"
+          name={caregiver.name}
+          size={88}
+          className="h-20 w-20 shrink-0"
         />
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
