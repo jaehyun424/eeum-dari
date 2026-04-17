@@ -14,7 +14,6 @@ import {
   FileCheck,
   ShieldCheck,
   Shield,
-  Files,
   Stethoscope,
   Building2,
   ArrowRight,

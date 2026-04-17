@@ -27,7 +27,9 @@ const bodySchema = z.union([
         careStartDate: z.string().optional(),
         careEndDate: z.string().optional(),
         nightCareNeeded: z.boolean().optional(),
-        mobilityLevel: z.string().optional(),
+        mobilityLevel: z
+          .enum(['independent', 'assisted', 'wheelchair', 'bedridden'])
+          .optional(),
         additionalNotes: z.string().optional(),
       })
       .optional(),
@@ -44,7 +46,9 @@ const bodySchema = z.union([
       careStartDate: z.string().optional(),
       careEndDate: z.string().optional(),
       nightCareNeeded: z.boolean().optional(),
-      mobilityLevel: z.string().optional(),
+      mobilityLevel: z
+        .enum(['independent', 'assisted', 'wheelchair', 'bedridden'])
+        .optional(),
       additionalNotes: z.string().optional(),
     }),
   }),

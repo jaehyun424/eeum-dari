@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { Menu, X, LogOut, User as UserIcon } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
@@ -30,7 +30,6 @@ function truncateEmail(email: string, max = 16): string {
 
 export function Header() {
   const router = useRouter();
-  const pathname = usePathname();
   const { user, loading, signOut } = useAuth();
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -69,11 +68,8 @@ export function Header() {
     };
   }, [mobileMenuOpen, userMenuOpen]);
 
-  // route change 시 메뉴 닫기
-  useEffect(() => {
-    setMobileMenuOpen(false);
-    setUserMenuOpen(false);
-  }, [pathname]);
+  // route change 시 메뉴 닫기는 각 Link onClick에서 직접 처리한다.
+  // (React 19 set-state-in-effect rule 회피)
 
   // mobile menu open 시 body scroll lock
   useEffect(() => {
@@ -136,6 +132,7 @@ export function Header() {
                   <Link
                     href={dashboardHref}
                     role="menuitem"
+                    onClick={() => setUserMenuOpen(false)}
                     className="block rounded-lg px-3 py-2 text-sm text-foreground hover:bg-surface-hover"
                   >
                     내 대시보드
@@ -156,12 +153,14 @@ export function Header() {
             <>
               <Link
                 href="/login"
+                onClick={() => setUserMenuOpen(false)}
                 className="rounded-lg px-3 py-2 text-sm font-medium text-muted hover:text-foreground transition-colors"
               >
                 로그인
               </Link>
               <Link
                 href="/register"
+                onClick={() => setUserMenuOpen(false)}
                 className="rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700 transition-colors"
               >
                 시작하기
@@ -205,6 +204,7 @@ export function Header() {
                 </div>
                 <Link
                   href={dashboardHref}
+                  onClick={() => setMobileMenuOpen(false)}
                   className="rounded-lg px-3 py-2.5 text-sm font-medium text-foreground hover:bg-surface-hover"
                 >
                   내 대시보드
@@ -222,12 +222,14 @@ export function Header() {
               <nav className="flex flex-col gap-1">
                 <Link
                   href="/login"
+                  onClick={() => setMobileMenuOpen(false)}
                   className="rounded-lg px-3 py-2.5 text-sm font-medium text-muted hover:bg-surface-hover hover:text-foreground"
                 >
                   로그인
                 </Link>
                 <Link
                   href="/register"
+                  onClick={() => setMobileMenuOpen(false)}
                   className="rounded-lg bg-brand-600 px-3 py-2.5 text-sm font-medium text-white hover:bg-brand-700"
                 >
                   시작하기

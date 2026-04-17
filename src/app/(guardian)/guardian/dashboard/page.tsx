@@ -14,7 +14,7 @@ import {
   Phone,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/Badge';
-import { formatCurrency, formatDate } from '@/lib/utils/format';
+import { formatDate } from '@/lib/utils/format';
 import { getContractsForGuardian } from '@/lib/mock/contracts';
 import { mockCareRequests } from '@/lib/mock/care-requests';
 import { hospitals } from '@/lib/constants/hospitals';

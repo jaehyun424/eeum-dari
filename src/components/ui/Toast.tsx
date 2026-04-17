@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { CheckCircle, XCircle, AlertTriangle, Info, X } from 'lucide-react';
 
 type ToastType = 'success' | 'error' | 'warning' | 'info';
@@ -27,17 +27,15 @@ export function Toast({
   onClose,
   duration = 4000,
 }: ToastProps) {
-  const [show, setShow] = useState(false);
+  // 렌더 시점에 isVisible과 동기화되므로 effect에서 setShow(true) 할 필요가 없다.
+  const show = isVisible;
 
   useEffect(() => {
-    if (isVisible) {
-      setShow(true);
-      const timer = setTimeout(() => {
-        setShow(false);
-        setTimeout(onClose, 300);
-      }, duration);
-      return () => clearTimeout(timer);
-    }
+    if (!isVisible) return;
+    const timer = setTimeout(() => {
+      onClose();
+    }, duration);
+    return () => clearTimeout(timer);
   }, [isVisible, duration, onClose]);
 
   if (!isVisible) return null;

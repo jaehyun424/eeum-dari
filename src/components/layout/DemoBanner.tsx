@@ -1,25 +1,39 @@
 'use client';
 
 import { X } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useSyncExternalStore, useState } from 'react';
 
 const STORAGE_KEY = 'eeum:demoBanner:dismissed';
 
-export function DemoBanner() {
-  const [visible, setVisible] = useState(false);
+// localStorage는 외부 저장소이므로 useSyncExternalStore로 안전하게 읽는다.
+// set-state-in-effect 경고 없이 SSR/CSR 일관성을 유지한다.
+function subscribeStorage(callback: () => void) {
+  window.addEventListener('storage', callback);
+  return () => window.removeEventListener('storage', callback);
+}
 
-  useEffect(() => {
-    // hydration mismatch 방지 — 초기 SSR은 null, 마운트 후 storage 읽고 결정
-    try {
-      const dismissed = window.localStorage.getItem(STORAGE_KEY) === '1';
-      setVisible(!dismissed);
-    } catch {
-      setVisible(true);
-    }
-  }, []);
+function readDismissed(): boolean {
+  try {
+    return window.localStorage.getItem(STORAGE_KEY) === '1';
+  } catch {
+    return false;
+  }
+}
+
+export function DemoBanner() {
+  const dismissedFromStorage = useSyncExternalStore(
+    subscribeStorage,
+    readDismissed,
+    () => false, // SSR 기본값: dismissed=false → 배너 렌더 (하지만 hidden 처리)
+  );
+  // 같은 탭에서 닫기를 누르면 storage 이벤트가 발생하지 않으므로
+  // 로컬 상태로도 한 번 더 관리한다.
+  const [localDismissed, setLocalDismissed] = useState(false);
+
+  const dismissed = dismissedFromStorage || localDismissed;
 
   function dismiss() {
-    setVisible(false);
+    setLocalDismissed(true);
     try {
       window.localStorage.setItem(STORAGE_KEY, '1');
     } catch {
@@ -27,7 +41,7 @@ export function DemoBanner() {
     }
   }
 
-  if (!visible) return null;
+  if (dismissed) return null;
 
   return (
     <div

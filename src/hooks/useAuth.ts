@@ -23,14 +23,13 @@ function missingEnvError(): AuthError {
 }
 
 export function useAuth() {
+  // env 미설정이면 auth 구독 자체가 필요 없어 loading을 처음부터 false로 초기화.
+  // (set-state-in-effect 회피)
   const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(() => isSupabaseConfigured());
 
   useEffect(() => {
-    if (!isSupabaseConfigured()) {
-      setLoading(false);
-      return;
-    }
+    if (!isSupabaseConfigured()) return;
     const supabase = createClient();
     const {
       data: { subscription },
