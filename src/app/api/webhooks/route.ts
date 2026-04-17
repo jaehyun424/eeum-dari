@@ -1,15 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { z } from 'zod/v4';
+import Stripe from 'stripe';
 import { ApiErrorCode, type ApiErrorResponse } from '@/lib/types/api-errors';
 
-// Stripe 웹훅 시크릿 (배포 시 환경변수로 설정)
+// Stripe 웹훅 엔드포인트.
+//
+// 정식 모드 (STRIPE_SECRET_KEY + STRIPE_WEBHOOK_SECRET 둘 다 존재):
+//   - raw body + stripe-signature 헤더로 constructEvent 실제 검증.
+//   - 검증 실패 시 401. 이벤트 타입별 핸들러는 TODO로 남김.
+//
+// Mock 모드 (env 미설정):
+//   - 서명 없이도 200 OK + {received, mode: 'mock'} 반환 → 로컬 개발 편의.
+//   - 실제 payment/refund 처리는 하지 않음.
+//
+// 중요: Stripe는 raw body가 필요하므로 req.json()이 아닌 req.text() 사용.
+
+const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY ?? '';
 const STRIPE_WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET ?? '';
 
-// 웹훅 바디 — type 필수, data는 타입별로 다르므로 unknown 허용
-const webhookSchema = z.object({
-  type: z.string().min(1),
-  data: z.unknown().optional(),
-});
+const stripe = STRIPE_SECRET_KEY ? new Stripe(STRIPE_SECRET_KEY) : null;
 
 function apiError(
   code: ApiErrorCode,
@@ -28,60 +36,67 @@ export async function GET() {
   return NextResponse.json({
     status: 'ok',
     service: 'webhooks',
+    mode: stripe && STRIPE_WEBHOOK_SECRET ? 'stripe' : 'mock',
     timestamp: new Date().toISOString(),
   });
 }
 
 export async function POST(req: NextRequest) {
   try {
-    // 1) 시그니처 검증 — 시크릿이 설정되어 있으면 헤더 필수
-    const signature =
-      req.headers.get('stripe-signature') ??
-      req.headers.get('x-webhook-signature') ??
-      '';
+    // Mock 모드: 로컬/베타에서 env 없이도 200 OK
+    if (!stripe || !STRIPE_WEBHOOK_SECRET) {
+      const body = await req.text().catch(() => '');
+      const preview = body.length > 200 ? body.slice(0, 200) + '…' : body;
+      console.info('[webhooks] mock mode — env 미설정, 검증 생략', {
+        bytes: body.length,
+        preview,
+      });
+      return NextResponse.json({ received: true, mode: 'mock' });
+    }
 
-    if (STRIPE_WEBHOOK_SECRET && !signature) {
+    const signature = req.headers.get('stripe-signature');
+    if (!signature) {
       return apiError(
         ApiErrorCode.UNAUTHORIZED,
-        '시그니처 헤더가 필요합니다',
+        '서명 헤더(stripe-signature)가 없습니다',
         401,
       );
     }
 
-    // 2) 바디 파싱 + Zod 검증
-    const rawBody = await req.json().catch(() => null);
-    const parsed = webhookSchema.safeParse(rawBody);
-    if (!parsed.success) {
+    // Stripe는 raw body를 요구한다 — .text() 사용 (.json() 금지)
+    const rawBody = await req.text();
+
+    let event: Stripe.Event;
+    try {
+      event = stripe.webhooks.constructEvent(
+        rawBody,
+        signature,
+        STRIPE_WEBHOOK_SECRET,
+      );
+    } catch (err) {
       return apiError(
-        ApiErrorCode.INVALID_REQUEST,
-        '잘못된 웹훅 페이로드입니다',
-        400,
+        ApiErrorCode.UNAUTHORIZED,
+        '웹훅 서명 검증에 실패했습니다',
+        401,
+        err,
       );
     }
 
-    const { type } = parsed.data;
-
-    // 3) 이벤트 타입별 라우팅 — 현재는 로그만
-    // TODO: Stripe/Supabase 이벤트 처리 확장 지점
-    switch (type) {
+    // TODO: 이벤트 타입별 도메인 로직은 Supabase 실제 스키마 적용과 함께 구현.
+    // 현재는 수신 사실만 로깅하고 200 OK.
+    switch (event.type) {
       case 'payment_intent.succeeded':
-        // TODO: 에스크로 결제 확정 → 간병 계약 상태 active 전환
-        break;
       case 'payment_intent.payment_failed':
-        // TODO: 결제 실패 처리 → 계약 상태 rollback
-        break;
       case 'charge.refunded':
-        // TODO: 환불 → 정산 조정
-        break;
-      case 'supabase.auth.signed_up':
-        // TODO: 신규 사용자 후속 작업 (프로필 row 생성 등)
+      case 'customer.subscription.created':
+        console.info('[webhooks] received', event.type, event.id);
         break;
       default:
-        // 알 수 없는 이벤트는 무시하되 200 OK (재시도 방지)
+        console.info('[webhooks] unhandled type', event.type, event.id);
         break;
     }
 
-    return NextResponse.json({ received: true, type });
+    return NextResponse.json({ received: true, type: event.type });
   } catch (err) {
     console.error('[api/webhooks] POST failed', err);
     return apiError(
