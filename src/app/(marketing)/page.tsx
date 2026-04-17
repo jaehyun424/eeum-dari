@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, type ReactNode } from 'react';
+import { useState, useSyncExternalStore, type ReactNode } from 'react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import {
@@ -187,6 +187,9 @@ function HeroIllustration() {
 
 function HeroVisual() {
   const [videoFailed, setVideoFailed] = useState(false);
+  // prefers-reduced-motion 사용자에겐 정적 SVG 일러스트로 바로 전환
+  const prefersReduced = useMediaQuery('(prefers-reduced-motion: reduce)');
+  const showStatic = videoFailed || prefersReduced;
 
   return (
     <motion.div
@@ -195,7 +198,7 @@ function HeroVisual() {
       transition={{ duration: 0.7, delay: 0.2 }}
       className="relative overflow-hidden rounded-2xl bg-brand-50"
     >
-      {videoFailed ? (
+      {showStatic ? (
         <HeroIllustration />
       ) : (
         <video
@@ -203,7 +206,9 @@ function HeroVisual() {
           loop
           muted
           playsInline
-          preload="auto"
+          preload="metadata"
+          poster="/hero-poster.svg"
+          aria-hidden
           className="h-[440px] w-full object-cover"
           onError={() => setVideoFailed(true)}
         >
@@ -212,6 +217,23 @@ function HeroVisual() {
       )}
       <div className="pointer-events-none absolute inset-0 bg-gradient-to-tr from-brand-900/15 via-transparent to-transparent" />
     </motion.div>
+  );
+}
+
+function useMediaQuery(query: string): boolean {
+  const get = () => {
+    if (typeof window === 'undefined') return false;
+    return window.matchMedia(query).matches;
+  };
+  return useSyncExternalStore(
+    (callback) => {
+      if (typeof window === 'undefined') return () => {};
+      const mql = window.matchMedia(query);
+      mql.addEventListener('change', callback);
+      return () => mql.removeEventListener('change', callback);
+    },
+    get,
+    () => false,
   );
 }
 

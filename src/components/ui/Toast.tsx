@@ -49,10 +49,7 @@ export function Toast({
       {icons[type]}
       <p className="text-sm text-foreground">{message}</p>
       <button
-        onClick={() => {
-          setShow(false);
-          setTimeout(onClose, 300);
-        }}
+        onClick={onClose}
         className="ml-2 rounded p-1 text-muted hover:text-foreground"
       >
         <X className="h-4 w-4" />

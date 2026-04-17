@@ -3,14 +3,11 @@
 import { Camera, CheckCircle2, Pencil, MapPin, Wallet, Award, Sparkles, User } from 'lucide-react';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
+import { Avatar } from '@/components/ui/Avatar';
 import { formatCurrency } from '@/lib/utils/format';
 import { mockCaregivers } from '@/lib/mock/caregivers';
 
 const completeness = 85;
-
-function avatarFallback(name: string): string {
-  return `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=1E56A0&color=fff&size=300&bold=true`;
-}
 
 export default function CaregiverProfilePage() {
   const me = mockCaregivers[0];
@@ -42,19 +39,11 @@ export default function CaregiverProfilePage() {
       <section className="rounded-xl border border-border bg-background p-5 sm:p-6 shadow-sm">
         <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center">
           <div className="relative shrink-0">
-            <img
+            <Avatar
               src={me.profile_image}
-              alt=""
-              width={120}
-              height={120}
-              onError={(e) => {
-                const img = e.currentTarget;
-                if (!img.dataset.fallback) {
-                  img.dataset.fallback = '1';
-                  img.src = avatarFallback(me.name);
-                }
-              }}
-              className="h-28 w-28 rounded-xl object-cover bg-warm-gray-100"
+              name={me.name}
+              size={120}
+              className="h-28 w-28"
             />
             <button
               type="button"
