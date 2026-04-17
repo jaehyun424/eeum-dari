@@ -1,25 +1,19 @@
 'use client';
 
+import { Suspense, useState } from 'react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
-import { useSearchParams } from 'next/navigation';
-import { Suspense, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Users, HeartHandshake, ArrowLeft } from 'lucide-react';
 import { registerSchema, type RegisterFormData } from '@/lib/types/forms';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
+import { Toast } from '@/components/ui/Toast';
+import { useAuth } from '@/hooks/useAuth';
 
 type Role = 'guardian' | 'caregiver';
-
-export default function RegisterPage() {
-  return (
-    <Suspense>
-      <RegisterContent />
-    </Suspense>
-  );
-}
 
 const certOptions = [
   '요양보호사',
@@ -28,27 +22,55 @@ const certOptions = [
   'BLS(기본생명구조술)',
 ];
 
+export default function RegisterPage() {
+  return (
+    <Suspense fallback={<RegisterSkeleton />}>
+      <RegisterContent />
+    </Suspense>
+  );
+}
+
+function RegisterSkeleton() {
+  return (
+    <div className="animate-pulse space-y-5">
+      <div className="h-8 w-28 rounded bg-warm-gray-200" />
+      <div className="h-4 w-2/3 rounded bg-warm-gray-100" />
+      <div className="space-y-4 pt-4">
+        <div className="h-20 rounded-xl bg-warm-gray-100" />
+        <div className="h-20 rounded-xl bg-warm-gray-100" />
+      </div>
+      <div className="h-12 rounded-xl bg-warm-gray-100 mt-6" />
+    </div>
+  );
+}
+
 function RegisterContent() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const initialRole = searchParams.get('role') as Role | null;
+
+  const { signUp } = useAuth();
 
   const [role, setRole] = useState<Role | null>(initialRole);
   const [step, setStep] = useState<'role' | 'form'>(
     initialRole ? 'form' : 'role',
   );
 
-  // Caregiver extra fields
   const [experienceYears, setExperienceYears] = useState('');
   const [certifications, setCertifications] = useState<string[]>([]);
 
-  // Password confirm
   const [passwordConfirm, setPasswordConfirm] = useState('');
   const [passwordConfirmError, setPasswordConfirmError] = useState('');
+
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [toast, setToast] = useState<{
+    type: 'success' | 'error' | 'info';
+    message: string;
+  } | null>(null);
 
   const {
     register,
     handleSubmit,
-    watch,
     formState: { errors },
   } = useForm<RegisterFormData>({
     resolver: zodResolver(registerSchema),
@@ -56,8 +78,6 @@ function RegisterContent() {
       role: initialRole ?? undefined,
     },
   });
-
-  const password = watch('password');
 
   function handleRoleSelect(selected: Role) {
     setRole(selected);
@@ -79,22 +99,52 @@ function RegisterContent() {
     );
   }
 
-  function onSubmit(data: RegisterFormData) {
+  async function onSubmit(data: RegisterFormData) {
+    if (isSubmitting) return;
+
     if (data.password !== passwordConfirm) {
       setPasswordConfirmError('비밀번호가 일치하지 않습니다');
       return;
     }
     setPasswordConfirmError('');
 
-    const payload =
-      role === 'caregiver'
-        ? {
-            ...data,
-            experienceYears: experienceYears ? Number(experienceYears) : null,
-            certifications,
-          }
-        : data;
-    console.log(payload);
+    setIsSubmitting(true);
+    try {
+      const metadata: Record<string, unknown> = {
+        role,
+        name: data.name,
+        phone: data.phone,
+      };
+      if (role === 'caregiver') {
+        metadata.experience_years = experienceYears
+          ? Number(experienceYears)
+          : null;
+        metadata.certifications = certifications;
+      }
+
+      const { error } = await signUp(data.email, data.password, metadata);
+      if (error) {
+        const msg = error.message ?? '';
+        setToast({
+          type: 'error',
+          message:
+            msg.includes('already registered') || msg.includes('exists')
+              ? '이미 가입된 이메일입니다'
+              : msg.includes('Missing')
+                ? '회원가입 서비스가 현재 연결되어 있지 않습니다 (베타)'
+                : '회원가입에 실패했습니다. 잠시 후 다시 시도해주세요',
+        });
+        return;
+      }
+      router.push('/login?registered=1');
+    } catch {
+      setToast({
+        type: 'error',
+        message: '회원가입 서비스가 현재 연결되어 있지 않습니다 (베타)',
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   return (
@@ -105,13 +155,11 @@ function RegisterContent() {
       transition={{ duration: 0.4 }}
     >
       {step === 'role' ? (
-        /* ── Role selection ── */
         <>
           <h1 className="text-2xl font-bold text-foreground">회원가입</h1>
           <p className="mt-2 text-base text-muted">어떤 분이신가요?</p>
 
           <div className="mt-8 space-y-4">
-            {/* Guardian card */}
             <button
               type="button"
               onClick={() => handleRoleSelect('guardian')}
@@ -138,7 +186,6 @@ function RegisterContent() {
               </div>
             </button>
 
-            {/* Caregiver card */}
             <button
               type="button"
               onClick={() => handleRoleSelect('caregiver')}
@@ -190,9 +237,7 @@ function RegisterContent() {
           </p>
         </>
       ) : (
-        /* ── Registration form ── */
         <>
-          {/* Back button */}
           {!initialRole && (
             <button
               type="button"
@@ -214,8 +259,8 @@ function RegisterContent() {
           <form
             onSubmit={handleSubmit(onSubmit)}
             className="mt-8 space-y-3"
+            noValidate
           >
-            {/* Hidden role */}
             <input type="hidden" value={role ?? ''} {...register('role')} />
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -225,6 +270,7 @@ function RegisterContent() {
                 placeholder="홍길동"
                 className="py-3"
                 error={errors.name?.message}
+                autoComplete="name"
                 {...register('name')}
               />
               <Input
@@ -234,6 +280,7 @@ function RegisterContent() {
                 placeholder="example@email.com"
                 className="py-3"
                 error={errors.email?.message}
+                autoComplete="email"
                 {...register('email')}
               />
               <Input
@@ -243,6 +290,7 @@ function RegisterContent() {
                 placeholder="010-0000-0000"
                 className="py-3"
                 error={errors.phone?.message}
+                autoComplete="tel"
                 {...register('phone')}
               />
               <Input
@@ -252,11 +300,11 @@ function RegisterContent() {
                 placeholder="6자 이상 입력해주세요"
                 className="py-3"
                 error={errors.password?.message}
+                autoComplete="new-password"
                 {...register('password')}
               />
             </div>
 
-            {/* Password confirm — separate from schema */}
             <div className="space-y-1.5">
               <label
                 htmlFor="passwordConfirm"
@@ -273,6 +321,7 @@ function RegisterContent() {
                   setPasswordConfirm(e.target.value);
                   if (passwordConfirmError) setPasswordConfirmError('');
                 }}
+                autoComplete="new-password"
                 className={`block w-full rounded-lg border border-border bg-background px-3.5 py-3 text-sm text-foreground placeholder:text-muted transition-colors focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 ${
                   passwordConfirmError
                     ? 'border-danger focus:border-danger focus:ring-danger/20'
@@ -284,7 +333,6 @@ function RegisterContent() {
               )}
             </div>
 
-            {/* Caregiver extra fields */}
             {role === 'caregiver' && (
               <div className="space-y-3 rounded-xl border border-border bg-surface p-6">
                 <div>
@@ -296,7 +344,6 @@ function RegisterContent() {
                   </p>
                 </div>
 
-                {/* Experience */}
                 <div className="space-y-1.5">
                   <label
                     htmlFor="experience"
@@ -315,7 +362,6 @@ function RegisterContent() {
                   />
                 </div>
 
-                {/* Certifications */}
                 <div className="space-y-1.5">
                   <p className="block text-sm font-medium text-foreground">
                     자격증
@@ -346,6 +392,7 @@ function RegisterContent() {
                 variant="primary"
                 size="lg"
                 className="w-full h-[52px] text-base"
+                isLoading={isSubmitting}
               >
                 회원가입
               </Button>
@@ -363,6 +410,13 @@ function RegisterContent() {
           </p>
         </>
       )}
+
+      <Toast
+        type={toast?.type ?? 'info'}
+        message={toast?.message ?? ''}
+        isVisible={toast !== null}
+        onClose={() => setToast(null)}
+      />
     </motion.div>
   );
 }
