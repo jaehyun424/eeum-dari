@@ -1,6 +1,11 @@
+import type { Metadata } from 'next';
 import { Header } from '@/components/layout/Header';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { MobileNav } from '@/components/layout/MobileNav';
+
+export const metadata: Metadata = {
+  robots: { index: false, follow: false, nocache: true },
+};
 
 export default function CaregiverLayout({
   children,
@@ -12,7 +17,9 @@ export default function CaregiverLayout({
       <Header />
       <div className="flex flex-1">
         <Sidebar role="caregiver" />
-        <main className="flex-1 px-4 py-6 sm:px-6 lg:px-8">{children}</main>
+        <main className="flex-1 px-4 pt-6 pb-24 sm:px-6 lg:px-8 lg:pb-8">
+          {children}
+        </main>
       </div>
       <MobileNav role="caregiver" />
     </>
