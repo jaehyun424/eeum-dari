@@ -22,7 +22,7 @@ export function Footer() {
               이음다리
             </Link>
             <p className="mt-3 text-sm text-muted leading-relaxed">
-              검증된 간병인을 쉽고 안전하게.<br />
+              설명 가능한 간병 매칭.<br />
               이음다리가 이어드립니다.
             </p>
           </div>
